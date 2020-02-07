@@ -7,20 +7,52 @@
 
 #ifdef RS_ENABLE_DEBUG_INFO
 #include<iostream>
+#include<cassert>
+#include<cmath>
 #endif
 
 namespace RSMem
 {
-    PoolAllocator::PoolAllocator(std::size_t totalMemoryBlockSize, std::size_t objectSize, std::size_t alignment): m_StartPtr(::malloc(totalMemoryBlockSize)),
-        m_ArenaSize(totalMemoryBlockSize)
+    PoolAllocator::PoolAllocator(std::size_t objectSize, std::size_t maxObjects, std::size_t alignment):
+        m_PossibleAllocations(maxObjects), m_RemainingAllocations(maxObjects)
     {
-        // The PoolAllocator assumes that totalMemoryBlockSize % objectSize == 0
-        // If not, it would have total number of available allocations = floor(totalMemoryBlockSize / objectSize)
+        // objectSize refers to size of each block
+        // maxObjects is the upper bound on the number of objects you'd expect to create
+        
+        // Ensure alignment is a power of two
+        if((alignment & (alignment - 1)) != 0)
+            throw AlignmentException();
+
+        auto totalSize = 0;
+        if(objectSize % alignment == 0) // Normally using sizeof(T) would give you the totalSize
+        {
+            totalSize = objectSize;
+        }
+        else // In case we don't get that; for e.g. packed struct or user-defined objectSize
+        {
+            if(alignment >= objectSize)
+            {
+                // If alignment is greater than object size, each object would occupy 'alignment' bytes
+                // This case is pretty rare; anything that can be put in an array must have alignof(T) <= sizeof(T).
+                // It would only be valid if the user specified they want an alignment greater than the size.
+                totalSize = alignment;
+            }
+            else
+            {
+                // Otherwise, totalSize to allocate per object/block is the multiple of alignment next highest to the objectSize.
+                // If objectSize is 13 and alignment is 4, we would need to allocate 16 bytes per object.
+                totalSize = static_cast<std::size_t>(::ceil(static_cast<double>(objectSize)/static_cast<double>(alignment))) * alignment; 
+            }
+        }
+
+
+        m_ArenaSize = totalSize * maxObjects;
+
+        m_StartPtr = ::malloc(m_ArenaSize);
+
         if(!m_StartPtr)
             throw UnableToAllocateException();
         
-        m_PossibleAllocations = totalMemoryBlockSize / objectSize;
-        m_RemainingAllocations = m_PossibleAllocations;
         
         m_FreeListHead = reinterpret_cast<Block*>(m_StartPtr);
 

@@ -26,7 +26,7 @@ namespace RSMem
 
         PoolAllocator() = delete;
 
-        PoolAllocator(std::size_t totalMemoryBlockSize, std::size_t objectSize, std::size_t alignment);
+        PoolAllocator(std::size_t objectSize, std::size_t maxObjects, std::size_t alignment);
 
         ~PoolAllocator();
 

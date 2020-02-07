@@ -22,6 +22,14 @@ namespace RSMem
         }
     };
 
+    struct AlignmentException: public std::exception
+    {
+        virtual const char* what() const noexcept
+        {
+            return "Alignment must be a power of two.\n";
+        }
+    };
+
 }
 
 #endif
