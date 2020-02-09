@@ -115,9 +115,7 @@ namespace RSMem
 
     void PoolAllocator::Free(void* block)
     {
-        // TODO: Check if block belongs to memory arena
-
-        if(!block)
+        if(!block || !IsInMemoryArena(block))
             return;
         
         auto listBlock = reinterpret_cast<Block*>(block);
@@ -140,7 +138,12 @@ namespace RSMem
     }
 
 
+    bool PoolAllocator::IsInMemoryArena(void* ptr) const
+    {
+        auto end = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_StartPtr) + m_ArenaSize);
 
+        return ptr >= m_StartPtr && ptr < end;
+    }
 
 
 }

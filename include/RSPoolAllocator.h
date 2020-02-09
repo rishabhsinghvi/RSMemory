@@ -37,6 +37,10 @@ namespace RSMem
         std::size_t GetPossibleAllocations() const;
 
         std::size_t GetRemainingAllocations() const;
+
+    private:
+
+        bool IsInMemoryArena(void* ptr) const;
     };
 }
 
