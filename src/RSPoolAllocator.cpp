@@ -7,9 +7,10 @@
 
 #ifdef RS_ENABLE_DEBUG_INFO
 #include<iostream>
+#endif
+
 #include<cassert>
 #include<cmath>
-#endif
 
 namespace RSMem
 {
